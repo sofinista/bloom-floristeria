@@ -1,3 +1,18 @@
 spring:
   application:
     name: bloom
+  config:
+    # Si existe application-local.yaml (cada persona tiene el suyo, NO se sube a Git),
+    # sus valores reemplazan a los de este archivo. Si no existe, no pasa nada.
+    import: "optional:classpath:application-local.yaml"
+
+server:
+  port: 8080
+  servlet:
+    context-path: /bloom
+
+bloom:
+  db:
+    url: "jdbc:sqlserver://localhost:1433;databaseName=bloom;encrypt=true;trustServerCertificate=true"
+    usuario: "bloom_app"
+    clave: "Bloom2026*"
