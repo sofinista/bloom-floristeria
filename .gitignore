@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Configuracion local de cada persona
+src/main/resources/application-local.yaml
