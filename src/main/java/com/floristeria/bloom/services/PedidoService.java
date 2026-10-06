@@ -129,8 +129,9 @@ public class PedidoService implements IPedidoService {
         }
 
         // Al entregar, se registra la fecha y hora reales de la entrega
-        LocalDateTime fechaEntregaReal = "ENTREGADO".equals(destino) ? LocalDateTime.now() : null;
-        pedidoRepository.actualizarEstado(id, destino, fechaEntregaReal);
+        pedido.setEstado(destino);
+        pedido.setFechaEntregaReal("ENTREGADO".equals(destino) ? LocalDateTime.now() : null);
+        pedidoRepository.actualizarEstado(pedido);
         return consultar(id);
     }
 

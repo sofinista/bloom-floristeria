@@ -142,18 +142,17 @@ public class PedidoRepository implements IPedidoRepository {
     }
 
     @Override
-    public boolean actualizarEstado(int idPedido, String estado, LocalDateTime fechaEntregaReal)
-            throws SQLException {
+   public boolean actualizarEstado(Pedido pedido) throws SQLException {
         String sql = "UPDATE pedido SET estado = ?, fechaentregareal = ? WHERE idpedido = ?";
         try (Connection con = conexion.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, estado);
-            if (fechaEntregaReal == null) {
-                ps.setNull(2, Types.TIMESTAMP);
-            } else {
-                ps.setTimestamp(2, Timestamp.valueOf(fechaEntregaReal));
-            }
-            ps.setInt(3, idPedido);
+            ps.setString(1, pedido.getEstado());
+        if (pedido.getFechaEntregaReal() == null) {
+            ps.setNull(2, java.sql.Types.TIMESTAMP);
+        } else {
+            ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaEntregaReal()));
+        }
+            ps.setInt(3, pedido.getIdPedido());
             return ps.executeUpdate() > 0;
         }
     }
