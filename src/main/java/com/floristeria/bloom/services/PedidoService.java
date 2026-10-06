@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PedidoService implements IPedidoService {
 
-    // Regla de negocio: a que estados se puede pasar desde cada estado
     private static final Map<String, List<String>> TRANSICIONES = Map.of(
             "REGISTRADO", List.of("EN_ELABORACION", "CANCELADO"),
             "EN_ELABORACION", List.of("LISTO", "CANCELADO"),
@@ -36,7 +35,6 @@ public class PedidoService implements IPedidoService {
 
     private final ClienteRepository clienteRepository;
 
-    // Registra un pedido con sus arreglos. El valor total lo calcula el sistema.
     @Override
     public Pedido insertar(Pedido pedido) throws SQLException {
         if (pedido == null) {
@@ -72,7 +70,6 @@ public class PedidoService implements IPedidoService {
         return pedidoRepository.consultarPorId(guardado.getIdPedido());
     }
 
-    // Filtros opcionales: estado e idCliente
     @Override
     public List<Pedido> listar(String estado, Integer idCliente) throws SQLException {
         String estadoFiltro = null;
@@ -95,7 +92,6 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
-    // Solo se puede editar mientras el pedido siga REGISTRADO
     public Pedido actualizarDatos(Pedido datos) throws SQLException {
         if (datos == null || datos.getIdPedido() == null) {
             throw new ReglaNegocioException("El idPedido es obligatorio para actualizar");
@@ -111,7 +107,7 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
-    // Cambia el estado validando que la transicion este permitida
+
     public Pedido cambiarEstado(Integer id, String nuevoEstado) throws SQLException {
         if (vacio(nuevoEstado)) {
             throw new ReglaNegocioException("El estado es obligatorio. " + ESTADOS_VALIDOS);
@@ -128,7 +124,6 @@ public class PedidoService implements IPedidoService {
                     + ". Desde " + pedido.getEstado() + " solo se permite: " + permitidos);
         }
 
-        // Al entregar, se registra la fecha y hora reales de la entrega
         pedido.setEstado(destino);
         pedido.setFechaEntregaReal("ENTREGADO".equals(destino) ? LocalDateTime.now() : null);
         pedidoRepository.actualizarEstado(pedido);

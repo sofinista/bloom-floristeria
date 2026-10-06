@@ -23,9 +23,6 @@ public class PedidoRepository implements IPedidoRepository {
     @Autowired
     private Conexion conexion;
 
-    // Guarda el pedido y todos sus arreglos en UNA transaccion:
-    // o se guarda todo, o no se guarda nada (rollback).
-        @Override
     public Pedido insertarConArreglos(Pedido pedido) throws SQLException {
         try (Connection con = conexion.obtenerConexion()) {
             con.setAutoCommit(false);
@@ -76,8 +73,6 @@ public class PedidoRepository implements IPedidoRepository {
         }
     }
 
-    // Lista pedidos. Los filtros son opcionales (pueden venir null).
-    @Override
     public List<Pedido> listar(String estado, Integer idCliente) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT " + COLUMNAS + " FROM pedido WHERE 1 = 1");
         List<Object> parametros = new ArrayList<>();
@@ -106,7 +101,6 @@ public class PedidoRepository implements IPedidoRepository {
         return pedidos;
     }
 
-    // Devuelve el pedido con sus arreglos, o null si no existe
     @Override
     public Pedido consultarPorId(int idPedido) throws SQLException {
         String sql = "SELECT " + COLUMNAS + " FROM pedido WHERE idpedido = ?";
@@ -127,7 +121,6 @@ public class PedidoRepository implements IPedidoRepository {
         }
     }
 
-    // Solo actualiza si el pedido sigue en estado REGISTRADO
     @Override
     public boolean actualizarDatos(Pedido pedido) throws SQLException {
         String sql = "UPDATE pedido SET fechahoraentrega = ?, direccionentrega = ?, ocasion = ? "
