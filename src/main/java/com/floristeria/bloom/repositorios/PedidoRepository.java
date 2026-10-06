@@ -9,8 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,51 +25,54 @@ public class PedidoRepository implements IPedidoRepository {
 
     // Guarda el pedido y todos sus arreglos en UNA transaccion:
     // o se guarda todo, o no se guarda nada (rollback).
-    @Override
+        @Override
     public Pedido insertarConArreglos(Pedido pedido) throws SQLException {
-        String sqlPedido = "INSERT INTO pedido (idcliente, fechahoraentrega, direccionentrega, ocasion, "
-                + "estado, valortotal) VALUES (?, ?, ?, ?, ?, ?)";
-        String sqlArreglo = "INSERT INTO arreglo (idpedido, tipoarreglo, tamano, colores, descripcion, "
-                + "valorunitario) VALUES (?, ?, ?, ?, ?, ?)";
-
         try (Connection con = conexion.obtenerConexion()) {
-            con.setAutoCommit(false); // inicia la transaccion
+            con.setAutoCommit(false);
             try {
-                int idPedido;
-                try (PreparedStatement ps = con.prepareStatement(sqlPedido, Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, pedido.getIdCliente());
-                    ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaHoraEntrega()));
-                    ps.setString(3, pedido.getDireccionEntrega());
-                    ps.setString(4, pedido.getOcasion());
-                    ps.setString(5, pedido.getEstado());
-                    ps.setDouble(6, pedido.getValorTotal());
-                    ps.executeUpdate();
-                    try (ResultSet keys = ps.getGeneratedKeys()) {
-                        keys.next();
-                        idPedido = keys.getInt(1);
-                    }
-                }
-
-                try (PreparedStatement ps = con.prepareStatement(sqlArreglo)) {
-                    for (Arreglo arreglo : pedido.getArreglos()) {
-                        ps.setInt(1, idPedido);
-                        ps.setString(2, arreglo.getTipoArreglo());
-                        ps.setString(3, arreglo.getTamano());
-                        ps.setString(4, arreglo.getColores());
-                        ps.setString(5, arreglo.getDescripcion());
-                        ps.setDouble(6, arreglo.getValorUnitario());
-                        ps.addBatch();
-                    }
-                    ps.executeBatch();
-                }
-
-                con.commit(); // confirma todo
-                pedido.setIdPedido(idPedido);
+                pedido.setIdPedido(insertarPedido(con, pedido));
+                insertarArreglos(con, pedido.getIdPedido(), pedido.getArreglos());
+                con.commit();
                 return pedido;
             } catch (SQLException | RuntimeException e) {
-                con.rollback(); // deshace todo si algo fallo
+                con.rollback();
                 throw e;
             }
+        }
+    }
+
+    private int insertarPedido(Connection con, Pedido pedido) throws SQLException {
+        String sql = "INSERT INTO pedido (idcliente, fechahoraentrega, direccionentrega, ocasion, "
+                + "estado, valortotal) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, pedido.getIdCliente());
+            ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaHoraEntrega()));
+            ps.setString(3, pedido.getDireccionEntrega());
+            ps.setString(4, pedido.getOcasion());
+            ps.setString(5, pedido.getEstado());
+            ps.setDouble(6, pedido.getValorTotal());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                keys.next();
+                return keys.getInt(1);
+            }
+        }
+    }
+
+    private void insertarArreglos(Connection con, int idPedido, List<Arreglo> arreglos) throws SQLException {
+        String sql = "INSERT INTO arreglo (idpedido, tipoarreglo, tamano, colores, descripcion, "
+                + "valorunitario) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (Arreglo arreglo : arreglos) {
+                ps.setInt(1, idPedido);
+                ps.setString(2, arreglo.getTipoArreglo());
+                ps.setString(3, arreglo.getTamano());
+                ps.setString(4, arreglo.getColores());
+                ps.setString(5, arreglo.getDescripcion());
+                ps.setDouble(6, arreglo.getValorUnitario());
+                ps.addBatch();
+            }
+            ps.executeBatch();
         }
     }
 
