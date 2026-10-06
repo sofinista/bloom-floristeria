@@ -16,3 +16,7 @@ bloom:
     url: "jdbc:sqlserver://localhost:1433;databaseName=bloom;encrypt=true;trustServerCertificate=true"
     usuario: "bloom_app"
     clave: "Bloom2026*"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
