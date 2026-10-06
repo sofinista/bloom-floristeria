@@ -7,15 +7,18 @@ import com.floristeria.bloom.identidades.Cliente;
 import com.floristeria.bloom.identidades.Pedido;
 import com.floristeria.bloom.repositorios.ClienteRepository;
 import com.floristeria.bloom.repositorios.PedidoRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PedidoService {
+@RequiredArgsConstructor
+public class PedidoService implements IPedidoService {
 
     // Regla de negocio: a que estados se puede pasar desde cada estado
     private static final Map<String, List<String>> TRANSICIONES = Map.of(
@@ -28,13 +31,13 @@ public class PedidoService {
     private static final String ESTADOS_VALIDOS =
             "Use: REGISTRADO, EN_ELABORACION, LISTO, ENTREGADO o CANCELADO";
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final PedidoRepository pedidoRepository;
+
+    private final ClienteRepository clienteRepository;
 
     // Registra un pedido con sus arreglos. El valor total lo calcula el sistema.
+    @Override
     public Pedido insertar(Pedido pedido) throws SQLException {
         if (pedido == null) {
             throw new ReglaNegocioException("Debe enviar los datos del pedido");
@@ -70,6 +73,7 @@ public class PedidoService {
     }
 
     // Filtros opcionales: estado e idCliente
+    @Override
     public List<Pedido> listar(String estado, Integer idCliente) throws SQLException {
         String estadoFiltro = null;
         if (!vacio(estado)) {
@@ -81,6 +85,7 @@ public class PedidoService {
         return pedidoRepository.listar(estadoFiltro, idCliente);
     }
 
+    @Override
     public Pedido consultar(Integer id) throws SQLException {
         Pedido pedido = (id == null || id <= 0) ? null : pedidoRepository.consultarPorId(id);
         if (pedido == null) {
@@ -89,6 +94,7 @@ public class PedidoService {
         return pedido;
     }
 
+    @Override
     // Solo se puede editar mientras el pedido siga REGISTRADO
     public Pedido actualizarDatos(Pedido datos) throws SQLException {
         if (datos == null || datos.getIdPedido() == null) {
@@ -104,6 +110,7 @@ public class PedidoService {
         return consultar(datos.getIdPedido());
     }
 
+    @Override
     // Cambia el estado validando que la transicion este permitida
     public Pedido cambiarEstado(Integer id, String nuevoEstado) throws SQLException {
         if (vacio(nuevoEstado)) {
