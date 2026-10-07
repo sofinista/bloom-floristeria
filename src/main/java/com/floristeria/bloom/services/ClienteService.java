@@ -3,57 +3,64 @@ package com.floristeria.bloom.services;
 import com.floristeria.bloom.excepciones.NoEncontradoException;
 import com.floristeria.bloom.excepciones.ReglaNegocioException;
 import com.floristeria.bloom.identidades.Cliente;
-import com.floristeria.bloom.repositorios.ClienteRepository;
+import com.floristeria.bloom.repositorios.IClienteRepository;
+
 import java.sql.SQLException;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ClienteService {
+@RequiredArgsConstructor
+public class ClienteService implements IClienteService {
 
-    @Autowired
-    private ClienteRepository repository;
+    private final IClienteRepository clienteRepository;
 
+    @Override
     public List<Cliente> listar() throws SQLException {
-        return repository.listar();
+        return clienteRepository.listar();
     }
 
     // Devuelve el cliente activo o lanza 404
+    @Override
     public Cliente consultar(Integer id) throws SQLException {
-        Cliente cliente = (id == null || id <= 0) ? null : repository.consultarPorId(id);
+        Cliente cliente = (id == null || id <= 0) ? null : clienteRepository.consultarPorId(id);
         if (cliente == null || !Boolean.TRUE.equals(cliente.getActivo())) {
             throw new NoEncontradoException("No existe un cliente activo con id " + id);
         }
         return cliente;
     }
 
+    @Override
     public Cliente insertar(Cliente cliente) throws SQLException {
         validar(cliente);
-        if (repository.existeDocumento(cliente.getNumeroDocumento(), 0)) {
+        if (clienteRepository.existeDocumento(cliente.getNumeroDocumento(), 0)) {
             throw new ReglaNegocioException(
                     "Ya existe un cliente con el documento " + cliente.getNumeroDocumento());
         }
-        return repository.insertar(cliente);
+        return clienteRepository.insertar(cliente);
     }
 
+    @Override
     public Cliente actualizar(Cliente cliente) throws SQLException {
         if (cliente == null || cliente.getIdCliente() == null) {
             throw new ReglaNegocioException("El idCliente es obligatorio para actualizar");
         }
         validar(cliente);
         consultar(cliente.getIdCliente()); // lanza 404 si no existe o esta inactivo
-        if (repository.existeDocumento(cliente.getNumeroDocumento(), cliente.getIdCliente())) {
+        if (clienteRepository.existeDocumento(cliente.getNumeroDocumento(), cliente.getIdCliente())) {
             throw new ReglaNegocioException(
                     "Otro cliente ya tiene el documento " + cliente.getNumeroDocumento());
         }
-        repository.actualizar(cliente);
+        clienteRepository.actualizar(cliente);
         return consultar(cliente.getIdCliente());
     }
 
+    @Override
     public void eliminar(Integer id) throws SQLException {
         consultar(id); // lanza 404 si no existe o ya estaba inactivo
-        repository.desactivar(id);
+        clienteRepository.desactivar(id);
     }
 
     private void validar(Cliente cliente) {

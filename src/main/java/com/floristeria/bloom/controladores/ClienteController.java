@@ -2,10 +2,13 @@ package com.floristeria.bloom.controladores;
 
 import com.floristeria.bloom.identidades.Cliente;
 import com.floristeria.bloom.services.ClienteService;
+import com.floristeria.bloom.services.IClienteService;
+
+import lombok.RequiredArgsConstructor;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,10 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/clientes")
+@RequiredArgsConstructor
 public class ClienteController {
 
-    @Autowired
-    private ClienteService service;
+    
+    private final IClienteService service;
 
     @GetMapping("/listar")
     public ResponseEntity<List<Cliente>> listar() throws SQLException {
