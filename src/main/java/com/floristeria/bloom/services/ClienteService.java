@@ -4,6 +4,7 @@ import com.floristeria.bloom.excepciones.NoEncontradoException;
 import com.floristeria.bloom.excepciones.ReglaNegocioException;
 import com.floristeria.bloom.identidades.Cliente;
 import com.floristeria.bloom.repositorios.IClienteRepository;
+import com.floristeria.bloom.utilidades.Validaciones;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -67,25 +68,21 @@ public class ClienteService implements IClienteService {
         if (cliente == null) {
             throw new ReglaNegocioException("Debe enviar los datos del cliente");
         }
-        if (vacio(cliente.getNombre())) {
+        if (Validaciones.vacio(cliente.getNombre())) {
             throw new ReglaNegocioException("El nombre es obligatorio");
         }
-        if (vacio(cliente.getTelefono())) {
+        if (Validaciones.vacio(cliente.getTelefono())) {
             throw new ReglaNegocioException("El telefono es obligatorio");
         }
-        if (vacio(cliente.getTipoDocumento())) {
+        if (Validaciones.vacio(cliente.getTipoDocumento())) {
             throw new ReglaNegocioException("El tipoDocumento es obligatorio (CC, CE, PASAPORTE)");
         }
-        if (vacio(cliente.getNumeroDocumento())) {
+        if (Validaciones.vacio(cliente.getNumeroDocumento())) {
             throw new ReglaNegocioException("El numeroDocumento es obligatorio");
         }
         cliente.setNombre(cliente.getNombre().trim());
         cliente.setTelefono(cliente.getTelefono().trim());
         cliente.setTipoDocumento(cliente.getTipoDocumento().trim().toUpperCase());
         cliente.setNumeroDocumento(cliente.getNumeroDocumento().trim());
-    }
-
-    private boolean vacio(String texto) {
-        return texto == null || texto.isBlank();
     }
 }
