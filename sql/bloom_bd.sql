@@ -82,3 +82,16 @@ CREATE TABLE flor (
     activo         BIT           NOT NULL DEFAULT 1
 );
 GO
+
+USE bloom;
+GO
+IF OBJECT_ID('pago', 'U') IS NULL
+CREATE TABLE pago (
+    idpago    INT IDENTITY(1,1) PRIMARY KEY,
+    idpedido  INT           NOT NULL REFERENCES pedido(idpedido),
+    monto     DECIMAL(12,2) NOT NULL CHECK (monto > 0),
+    metodo    VARCHAR(20)   NOT NULL,
+    fechapago DATETIME2     NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT ck_pago_metodo CHECK (metodo IN ('EFECTIVO', 'TARJETA', 'TRANSFERENCIA'))
+);
+GO
