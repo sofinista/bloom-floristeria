@@ -46,6 +46,15 @@ La API queda en `http://localhost:8080/bloom`.
 | GET | `/pedidos/consultar/{id}` | Consulta un pedido con sus arreglos |
 | PUT | `/pedidos/actualizar` | Edita un pedido (solo si está REGISTRADO) |
 | PATCH | `/pedidos/estado?id=&estado=` | Cambia el estado del pedido con reglas |
+| GET | `/flores/listar` | Flores activas |
+| GET | `/flores/consultar/{id}` | Una flor |
+| POST | `/flores/nueva` | Crea flor |
+| PUT | `/flores/actualizar `| Edita flor |
+| DELETE | `/flores/eliminar/{id} `| Borrado lógico |
+| PATCH | `/flores/stock?id=&cantidad= `| Suma o resta stock |
+| POST | `/pagos/nuevo `| Registra un abono |
+| GET | `/pagos/pedido/{idPedido} `| Pagos de un pedido |
+| GET | `/pagos/saldo/{idPedido}` | Total, pagado y saldo |
 
 ## Reglas de negocio de Pedido
 
@@ -59,3 +68,11 @@ La API queda en `http://localhost:8080/bloom`.
 ## Estrategia de ramas
 
 `main` (versión estable) · `develop` (integración) · `feature/...` (una por funcionalidad, se une por Pull Request).
+
+## Documentación Swagger
+
+Con la app corriendo: http://localhost:8080/bloom/swagger-ui/index.html
+
+## Arquitectura
+
+Los controllers y services dependen de interfaces (IClienteService, IPedidoRepository, etc.) y se usa inyección por constructor. Hay pruebas unitarias con mocks (Mockito) en src/test.

@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class ClienteRepository {
+public class ClienteRepository implements IClienteRepository {
 
     private static final String COLUMNAS =
             "idcliente, nombre, telefono, direccion, correoelectronico, tipodocumento, numerodocumento, activo";
@@ -21,6 +21,7 @@ public class ClienteRepository {
     @Autowired
     private Conexion conexion;
 
+    @Override
     // Lista solo los clientes activos
     public List<Cliente> listar() throws SQLException {
         String sql = "SELECT " + COLUMNAS + " FROM cliente WHERE activo = 1 ORDER BY nombre";
@@ -35,6 +36,7 @@ public class ClienteRepository {
         return clientes;
     }
 
+    @Override
     // Devuelve el cliente (activo o no) o null si no existe
     public Cliente consultarPorId(int id) throws SQLException {
         String sql = "SELECT " + COLUMNAS + " FROM cliente WHERE idcliente = ?";
@@ -50,6 +52,7 @@ public class ClienteRepository {
         return null;
     }
 
+    @Override
     public Cliente insertar(Cliente cliente) throws SQLException {
         String sql = "INSERT INTO cliente (nombre, telefono, direccion, correoelectronico, "
                 + "tipodocumento, numerodocumento) VALUES (?, ?, ?, ?, ?, ?)";
@@ -72,6 +75,7 @@ public class ClienteRepository {
         return cliente;
     }
 
+    @Override
     public boolean actualizar(Cliente cliente) throws SQLException {
         String sql = "UPDATE cliente SET nombre = ?, telefono = ?, direccion = ?, correoelectronico = ?, "
                 + "tipodocumento = ?, numerodocumento = ? WHERE idcliente = ? AND activo = 1";
@@ -88,6 +92,7 @@ public class ClienteRepository {
         }
     }
 
+    @Override
     // Borrado logico: no se borra la fila, solo se marca como inactivo
     public boolean desactivar(int id) throws SQLException {
         String sql = "UPDATE cliente SET activo = 0 WHERE idcliente = ? AND activo = 1";
@@ -98,6 +103,7 @@ public class ClienteRepository {
         }
     }
 
+    @Override
     // Revisa si el documento ya lo tiene OTRO cliente (excluirId = 0 al crear)
     public boolean existeDocumento(String numeroDocumento, int excluirId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM cliente WHERE numerodocumento = ? AND idcliente <> ?";

@@ -9,15 +9,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class PedidoRepository {
+public class PedidoRepository implements IPedidoRepository {
 
     private static final String COLUMNAS = "idpedido, idcliente, fecharegistro, fechahoraentrega, "
             + "direccionentrega, ocasion, estado, valortotal, fechaentregareal";
@@ -25,56 +23,56 @@ public class PedidoRepository {
     @Autowired
     private Conexion conexion;
 
-    // Guarda el pedido y todos sus arreglos en UNA transaccion:
-    // o se guarda todo, o no se guarda nada (rollback).
     public Pedido insertarConArreglos(Pedido pedido) throws SQLException {
-        String sqlPedido = "INSERT INTO pedido (idcliente, fechahoraentrega, direccionentrega, ocasion, "
-                + "estado, valortotal) VALUES (?, ?, ?, ?, ?, ?)";
-        String sqlArreglo = "INSERT INTO arreglo (idpedido, tipoarreglo, tamano, colores, descripcion, "
-                + "valorunitario) VALUES (?, ?, ?, ?, ?, ?)";
-
         try (Connection con = conexion.obtenerConexion()) {
-            con.setAutoCommit(false); // inicia la transaccion
+            con.setAutoCommit(false);
             try {
-                int idPedido;
-                try (PreparedStatement ps = con.prepareStatement(sqlPedido, Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, pedido.getIdCliente());
-                    ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaHoraEntrega()));
-                    ps.setString(3, pedido.getDireccionEntrega());
-                    ps.setString(4, pedido.getOcasion());
-                    ps.setString(5, pedido.getEstado());
-                    ps.setDouble(6, pedido.getValorTotal());
-                    ps.executeUpdate();
-                    try (ResultSet keys = ps.getGeneratedKeys()) {
-                        keys.next();
-                        idPedido = keys.getInt(1);
-                    }
-                }
-
-                try (PreparedStatement ps = con.prepareStatement(sqlArreglo)) {
-                    for (Arreglo arreglo : pedido.getArreglos()) {
-                        ps.setInt(1, idPedido);
-                        ps.setString(2, arreglo.getTipoArreglo());
-                        ps.setString(3, arreglo.getTamano());
-                        ps.setString(4, arreglo.getColores());
-                        ps.setString(5, arreglo.getDescripcion());
-                        ps.setDouble(6, arreglo.getValorUnitario());
-                        ps.addBatch();
-                    }
-                    ps.executeBatch();
-                }
-
-                con.commit(); // confirma todo
-                pedido.setIdPedido(idPedido);
+                pedido.setIdPedido(insertarPedido(con, pedido));
+                insertarArreglos(con, pedido.getIdPedido(), pedido.getArreglos());
+                con.commit();
                 return pedido;
             } catch (SQLException | RuntimeException e) {
-                con.rollback(); // deshace todo si algo fallo
+                con.rollback();
                 throw e;
             }
         }
     }
 
-    // Lista pedidos. Los filtros son opcionales (pueden venir null).
+    private int insertarPedido(Connection con, Pedido pedido) throws SQLException {
+        String sql = "INSERT INTO pedido (idcliente, fechahoraentrega, direccionentrega, ocasion, "
+                + "estado, valortotal) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, pedido.getIdCliente());
+            ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaHoraEntrega()));
+            ps.setString(3, pedido.getDireccionEntrega());
+            ps.setString(4, pedido.getOcasion());
+            ps.setString(5, pedido.getEstado());
+            ps.setDouble(6, pedido.getValorTotal());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                keys.next();
+                return keys.getInt(1);
+            }
+        }
+    }
+
+    private void insertarArreglos(Connection con, int idPedido, List<Arreglo> arreglos) throws SQLException {
+        String sql = "INSERT INTO arreglo (idpedido, tipoarreglo, tamano, colores, descripcion, "
+                + "valorunitario) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (Arreglo arreglo : arreglos) {
+                ps.setInt(1, idPedido);
+                ps.setString(2, arreglo.getTipoArreglo());
+                ps.setString(3, arreglo.getTamano());
+                ps.setString(4, arreglo.getColores());
+                ps.setString(5, arreglo.getDescripcion());
+                ps.setDouble(6, arreglo.getValorUnitario());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
     public List<Pedido> listar(String estado, Integer idCliente) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT " + COLUMNAS + " FROM pedido WHERE 1 = 1");
         List<Object> parametros = new ArrayList<>();
@@ -103,7 +101,7 @@ public class PedidoRepository {
         return pedidos;
     }
 
-    // Devuelve el pedido con sus arreglos, o null si no existe
+    @Override
     public Pedido consultarPorId(int idPedido) throws SQLException {
         String sql = "SELECT " + COLUMNAS + " FROM pedido WHERE idpedido = ?";
         try (Connection con = conexion.obtenerConexion()) {
@@ -123,7 +121,7 @@ public class PedidoRepository {
         }
     }
 
-    // Solo actualiza si el pedido sigue en estado REGISTRADO
+    @Override
     public boolean actualizarDatos(Pedido pedido) throws SQLException {
         String sql = "UPDATE pedido SET fechahoraentrega = ?, direccionentrega = ?, ocasion = ? "
                 + "WHERE idpedido = ? AND estado = 'REGISTRADO'";
@@ -137,18 +135,18 @@ public class PedidoRepository {
         }
     }
 
-    public boolean actualizarEstado(int idPedido, String estado, LocalDateTime fechaEntregaReal)
-            throws SQLException {
+    @Override
+   public boolean actualizarEstado(Pedido pedido) throws SQLException {
         String sql = "UPDATE pedido SET estado = ?, fechaentregareal = ? WHERE idpedido = ?";
         try (Connection con = conexion.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, estado);
-            if (fechaEntregaReal == null) {
-                ps.setNull(2, Types.TIMESTAMP);
-            } else {
-                ps.setTimestamp(2, Timestamp.valueOf(fechaEntregaReal));
-            }
-            ps.setInt(3, idPedido);
+            ps.setString(1, pedido.getEstado());
+        if (pedido.getFechaEntregaReal() == null) {
+            ps.setNull(2, java.sql.Types.TIMESTAMP);
+        } else {
+            ps.setTimestamp(2, Timestamp.valueOf(pedido.getFechaEntregaReal()));
+        }
+            ps.setInt(3, pedido.getIdPedido());
             return ps.executeUpdate() > 0;
         }
     }
