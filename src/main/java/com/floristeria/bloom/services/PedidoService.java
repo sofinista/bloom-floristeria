@@ -6,6 +6,8 @@ import com.floristeria.bloom.identidades.Arreglo;
 import com.floristeria.bloom.identidades.Cliente;
 import com.floristeria.bloom.identidades.Pedido;
 import com.floristeria.bloom.repositorios.ClienteRepository;
+import com.floristeria.bloom.repositorios.IClienteRepository;
+import com.floristeria.bloom.repositorios.IPedidoRepository;
 import com.floristeria.bloom.repositorios.PedidoRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -30,10 +32,8 @@ public class PedidoService implements IPedidoService {
     private static final String ESTADOS_VALIDOS =
             "Use: REGISTRADO, EN_ELABORACION, LISTO, ENTREGADO o CANCELADO";
 
-
-    private final PedidoRepository pedidoRepository;
-
-    private final ClienteRepository clienteRepository;
+    private final IPedidoRepository pedidoRepository;
+    private final IClienteRepository clienteRepository;
 
     @Override
     public Pedido insertar(Pedido pedido) throws SQLException {
@@ -107,7 +107,6 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
-
     public Pedido cambiarEstado(Integer id, String nuevoEstado) throws SQLException {
         if (vacio(nuevoEstado)) {
             throw new ReglaNegocioException("El estado es obligatorio. " + ESTADOS_VALIDOS);
