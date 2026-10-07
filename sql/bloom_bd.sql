@@ -69,3 +69,16 @@ GO
 -- 6) Comprobacion: debe mostrar las 3 tablas
 SELECT name AS tablas_creadas FROM sys.tables ORDER BY name;
 GO
+
+USE bloom;
+GO
+IF OBJECT_ID('flor', 'U') IS NULL
+CREATE TABLE flor (
+    idflor         INT IDENTITY(1,1) PRIMARY KEY,
+    nombre         VARCHAR(80)   NOT NULL,
+    color          VARCHAR(40)   NOT NULL,
+    stock          INT           NOT NULL DEFAULT 0 CHECK (stock >= 0),
+    preciounitario DECIMAL(12,2) NOT NULL,
+    activo         BIT           NOT NULL DEFAULT 1
+);
+GO
