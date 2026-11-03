@@ -95,3 +95,29 @@ CREATE TABLE pago (
     CONSTRAINT ck_pago_metodo CHECK (metodo IN ('EFECTIVO', 'TARJETA', 'TRANSFERENCIA'))
 );
 GO
+
+USE bloom;
+GO
+IF OBJECT_ID('flor', 'U') IS NULL
+CREATE TABLE flor (
+    idflor         INT IDENTITY(1,1) PRIMARY KEY,
+    nombre         VARCHAR(80)   NOT NULL,
+    color          VARCHAR(40)   NOT NULL,
+    stock          INT           NOT NULL DEFAULT 0 CHECK (stock >= 0),
+    preciounitario DECIMAL(12,2) NOT NULL,
+    activo         BIT           NOT NULL DEFAULT 1
+);
+GO
+
+
+USE bloom;
+GO
+
+IF OBJECT_ID('tarjeta', 'U') IS NULL
+CREATE TABLE tarjeta (
+    idtarjeta INT IDENTITY(1,1) PRIMARY KEY,
+    idpedido  INT NOT NULL UNIQUE REFERENCES pedido(idpedido),
+    mensaje   VARCHAR(200) NOT NULL,
+    remitente VARCHAR(80) NULL
+);
+GO

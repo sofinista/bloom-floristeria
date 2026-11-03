@@ -2,9 +2,22 @@ spring:
   application:
     name: bloom
   config:
-    # Si existe application-local.yaml (cada persona tiene el suyo, NO se sube a Git),
-    # sus valores reemplazan a los de este archivo. Si no existe, no pasa nada.
+
     import: "optional:classpath:application-local.yaml"
+
+  datasource:
+    url: "${bloom.db.url}"
+    username: "${bloom.db.usuario}"
+    password: "${bloom.db.clave}"
+  jpa:
+    open-in-view: false
+    database-platform: org.hibernate.dialect.SQLServerDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 server:
   port: 8080
