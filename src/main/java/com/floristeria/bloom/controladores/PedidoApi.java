@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.floristeria.bloom.identidades.Tarjeta;
 
 @Tag(name = "Pedidos", description = "Registro y seguimiento de pedidos")
 @RequestMapping("/pedidos")
@@ -73,5 +74,10 @@ public interface PedidoApi {
     @PatchMapping("/estado")
     ResponseEntity<Pedido> cambiarEstado(@RequestParam("id") Integer id,
                                          @RequestParam("estado") String estado)
+            throws SQLException;
+
+    @PutMapping("/tarjeta/{id}")
+    ResponseEntity<Pedido> guardarTarjeta(@PathVariable("id") Integer id,
+                                          @RequestBody Tarjeta tarjeta)
             throws SQLException;
 }

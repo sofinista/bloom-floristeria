@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import com.floristeria.bloom.identidades.Tarjeta;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,5 +41,10 @@ public class PedidoController implements PedidoApi {
     public ResponseEntity<Pedido> cambiarEstado(Integer id, String estado)
             throws SQLException {
         return ResponseEntity.ok(service.cambiarEstado(id, estado));
+    }
+
+    @Override
+    public ResponseEntity<Pedido> guardarTarjeta(Integer id, Tarjeta tarjeta) throws SQLException {
+        return ResponseEntity.ok(service.guardarTarjeta(id, tarjeta));
     }
 }
