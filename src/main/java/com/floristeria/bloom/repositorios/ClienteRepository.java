@@ -9,17 +9,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 public class ClienteRepository implements IClienteRepository {
 
     private static final String COLUMNAS =
             "idcliente, nombre, telefono, direccion, correoelectronico, tipodocumento, numerodocumento, activo";
 
-    @Autowired
-    private Conexion conexion;
+    private final Conexion conexion;
 
     @Override
     // Lista solo los clientes activos
@@ -106,7 +106,7 @@ public class ClienteRepository implements IClienteRepository {
     @Override
     // Revisa si el documento ya lo tiene OTRO cliente (excluirId = 0 al crear)
     public boolean existeDocumento(String numeroDocumento, int excluirId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM cliente WHERE numerodocumento = ? AND idcliente <> ?";
+        String sql = "SELECT COUNT(1) FROM cliente WHERE numerodocumento = ? AND idcliente <> ?";
         try (Connection con = conexion.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, numeroDocumento);
